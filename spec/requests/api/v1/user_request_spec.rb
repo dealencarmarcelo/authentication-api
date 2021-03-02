@@ -25,5 +25,11 @@ describe 'User', type: :request do
                 expect(response_body.fetch('email')).to be_kind_of(String)
             end
         end
+
+        context 'when user does not exist' do
+            it 'raises RecordNotFound when not found' do
+                expect { get api_v1_user_path(0) }.to raise_error(ActiveRecord::RecordNotFound)
+            end
+        end
     end
 end
