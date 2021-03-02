@@ -1,7 +1,7 @@
 require 'rails_helper'
 require 'shoulda/matchers'
 
-describe 'User', type: :request do
+describe Api::V1::UsersController do
 
     let(:password) { Faker::Alphanumeric.alphanumeric(number: 10) }
 
@@ -41,8 +41,14 @@ describe 'User', type: :request do
         end
 
         context 'when user does not exist' do
-            it 'raises RecordNotFound when not found' do
-                expect { get api_v1_user_path(0) }.to raise_error(ActiveRecord::RecordNotFound)
+            before { get api_v1_user_path(0) }
+
+            it 'returns status code 404' do
+                expect(response).to have_http_status(404)
+            end
+
+            it 'returns a not found message' do
+                expect(response.body).to match(/Couldn't find User/)
             end
         end
     end
