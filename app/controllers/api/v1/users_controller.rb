@@ -1,5 +1,5 @@
 class Api::V1::UsersController < ApplicationController
-    before_action :set_user, only: [:show, :update]
+    before_action :set_user, only: [:show, :update, :destroy]
 
     def index
         users = User.order(:fullname)
@@ -26,6 +26,10 @@ class Api::V1::UsersController < ApplicationController
         else
             render json: @user.errors, status: :unprocessable_entity
         end
+    end
+
+    def destroy
+        @user.destroy
     end
 
     private

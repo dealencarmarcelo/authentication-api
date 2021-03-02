@@ -148,4 +148,18 @@ describe 'User', type: :request do
             end
         end
     end
+
+    describe 'delete /users/:id' do
+        context 'when user exists' do
+            it 'returns no_content' do
+                delete api_v1_user_path(user.id)
+                expect(response).to have_http_status(:no_content)
+            end
+        end
+        context 'when user does not exist' do
+            it 'raises RecordNotFound when not found' do
+                expect { delete api_v1_user_path(User.find(0)) }.to raise_error(ActiveRecord::RecordNotFound)
+            end
+        end
+    end
 end
