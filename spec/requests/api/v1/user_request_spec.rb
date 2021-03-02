@@ -3,15 +3,16 @@ require 'shoulda/matchers'
 
 describe 'User', type: :request do
 
+    let(:password) { Faker::Alphanumeric.alphanumeric(number: 10) }
+
     let(:params) do
         {
             user: {
                 fullname: Faker::Name.name_with_middle,
                 surname: Faker::Name.first_name,
                 email: Faker::Internet.email,
-                phone: '+5581999999999',
-                password: '123456',
-                password_confirmation: '123456'
+                password: password,
+                password_confirmation: password
             }
         }
     end
@@ -81,6 +82,69 @@ describe 'User', type: :request do
 
             it 'do not create an user' do
                 expect { created_user.name }.to raise_error(NoMethodError)
+            end
+        end
+    end
+
+    describe 'put /users/:id' do
+        context 'when user exists' do
+            # let(:password) { Faker::Alphanumeric.alphanumeric(number: 10) }
+            let(:small_password) { Faker::Alphanumeric.alphanumeric(number: 5) }
+
+            it 'returns success with valid fullname' do
+                put api_v1_user_path(user.id), params: { user: { fullname: Faker::Name.name_with_middle } }
+                expect(response).to have_http_status(:success)
+            end
+
+            it 'returns success with valid surname' do
+                put api_v1_user_path(user.id), params: { user: { surname: Faker::Name.first_name } }
+                expect(response).to have_http_status(:success)
+            end
+
+            it 'returns success with valid email' do
+                put api_v1_user_path(user.id), params: { user: { email: Faker::Internet.email } }
+                expect(response).to have_http_status(:success)
+            end
+
+            it 'returns success with valid and equals password and password_confirmation' do
+                put api_v1_user_path(user.id), params: { user: { password: password, password_confirmation: password } }
+                expect(response).to have_http_status(:success)
+            end
+            
+            it 'returns unprocessable_entity with invalid fullname' do
+                put api_v1_user_path(user.id), params: { user: { fullname: nil } }
+                expect(response).to have_http_status(:unprocessable_entity)
+            end
+
+            it 'returns unprocessable_entity with invalid surname' do
+                put api_v1_user_path(user.id), params: { user: { surname: nil } }
+                expect(response).to have_http_status(:unprocessable_entity)
+            end
+
+            it 'returns unprocessable_entity with invalid email' do
+                put api_v1_user_path(user.id), params: { user: { email: 'email_without_format.com' } }
+                expect(response).to have_http_status(:unprocessable_entity)
+            end
+
+            it 'returns unprocessable_entity with nil email' do
+                put api_v1_user_path(user.id), params: { user: { email: nil } }
+                expect(response).to have_http_status(:unprocessable_entity)
+            end
+
+            it 'returns unprocessable_entity with different password and password_confirmation' do
+                put api_v1_user_path(user.id), params: { user: { password: password, password_confirmation: '1234567' } }
+                expect(response).to have_http_status(:unprocessable_entity)
+            end
+
+            it 'returns unprocessable_entity with password and password_confirmation less than 6' do
+                put api_v1_user_path(user.id), params: { user: { password: small_password, password_confirmation: small_password } }
+                expect(response).to have_http_status(:unprocessable_entity)
+            end
+        end
+
+        context 'when user does not exists' do
+            it 'raises RecordNotFound when not found' do
+                expect { put api_v1_user_path(User.find(0)), params: params }.to raise_error(ActiveRecord::RecordNotFound)
             end
         end
     end
